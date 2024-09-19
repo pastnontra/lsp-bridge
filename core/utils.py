@@ -18,7 +18,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import json
 import logging
 import os
 import pathlib
@@ -127,15 +126,15 @@ def get_buffer_content(filename, buffer_name):
     global lsp_bridge_server
 
     if lsp_bridge_server and lsp_bridge_server.file_server:
-        return lsp_bridge_server.file_server.file_dict[filename]
+        return lsp_bridge_server.file_server.get_file_content(filename)
     else:
         return get_emacs_func_result('get-buffer-content', buffer_name)
 
 def get_file_content_from_file_server(filename):
     global lsp_bridge_server
 
-    if lsp_bridge_server and lsp_bridge_server.file_server and filename in lsp_bridge_server.file_server.file_dict:
-        return lsp_bridge_server.file_server.file_dict[filename]
+    if lsp_bridge_server and lsp_bridge_server.file_server:
+        return lsp_bridge_server.file_server.get_file_content(filename)
     else:
         return ""
 
@@ -363,7 +362,17 @@ def get_project_path(filepath):
         import os
         dir_path = os.path.dirname(filepath)
         if get_command_result("git rev-parse --is-inside-work-tree", dir_path) == "true":
-            return get_command_result("git rev-parse --show-toplevel", dir_path)
+            path_from_git = get_command_result("git rev-parse --show-toplevel", dir_path)
+            if get_os_name() == "windows":
+                path_parts = path_from_git.split("/")
+                # if this is a Unix-style absolute path, which should be a Windows-style one
+                if path_parts[0] == "/": 
+                    windows_path = path_parts[1] + ":/" + "/".join(path_parts[2:])
+                    return windows_path
+                else:
+                    return path_from_git
+            else:
+                return path_from_git
         else:
             return filepath
 
@@ -421,8 +430,20 @@ def split_ssh_path(ssh_path):
     else:
         return None
 
+def split_docker_path(docker_path):
+    # Pattern to extract username, container name, and path
+    pattern = r"^/docker:(?P<username>[^@]+)@(?P<container_name>[^:]+):(?P<path>/.*)$"
+    match = re.match(pattern, docker_path)
+    if match:
+        username = match.group('username')
+        container_name = match.group('container_name')
+        path = match.group('path')
+        return (username, container_name, path)
+    else:
+        return None
+
 def is_remote_path(filepath):
-    return filepath.startswith("/ssh:")
+    return filepath.startswith("/ssh:") or filepath.startswith("/docker:")
 
 def eval_sexp_in_emacs(sexp):
     epc_client.call("eval-in-emacs", [sexp])
@@ -444,7 +465,7 @@ def get_position(content, line, character):
     position = sum(len(lines[i]) + 1 for i in range(line)) + character
     return position
 
-def replace_template(arg):
+def replace_template(arg, project_path=None):
     if "%USER_EMACS_DIRECTORY%" in arg:
         if get_os_name() == "windows":
             user_emacs_dir = get_emacs_func_result("get-user-emacs-directory").replace("/", "\\")
@@ -452,7 +473,7 @@ def replace_template(arg):
             user_emacs_dir = get_emacs_func_result("get-user-emacs-directory")
         return arg.replace("%USER_EMACS_DIRECTORY%", user_emacs_dir)
     elif "$HOME" in arg:
-            return os.path.expandvars(arg)
+        return os.path.expandvars(arg)
     elif "%FILEHASH%" in arg:
         # pyright use `--cancellationReceive` option enable "background analyze" to improve completion performance.
         return arg.replace("%FILEHASH%", os.urandom(21).hex())
@@ -460,6 +481,14 @@ def replace_template(arg):
         return arg.replace("%USERPROFILE%", windows_get_env_value("USERPROFILE"))
     else:
         return arg
+
+def find_csharp_solution_file(directory):
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".sln"):
+                return os.path.join(root, file)
+
+    return None
 
 def touch(path):
     import os
@@ -497,13 +526,30 @@ def remove_duplicate_references(data):
             result.append(item)
     return result
 
-def get_nested_value(dct, keys):
-    for key in keys:
-        try:
-            dct = dct[key]
-        except (KeyError, TypeError):
+def get_value_from_path(data, path):
+    """
+    Retrieve a value from a nested dictionary based on the given path.
+    """
+    for key in path:
+        if isinstance(data, dict) and key in data:
+            data = data[key]
+        else:
             return None
-    return dct
+    return data
+
+def get_nested_value(json_data, attribute_path):
+    """
+    Find the corresponding value in json_data based on the attribute_path.
+    Handles both single paths and nested list paths.
+    """
+    if isinstance(attribute_path[0], list):  # Handle nested list case
+        for path in attribute_path:
+            value = get_value_from_path(json_data, path)
+            if value is not None:
+                return value
+        return None
+    else:
+        return get_value_from_path(json_data, attribute_path)
 
 class MessageSender(Thread):
 
