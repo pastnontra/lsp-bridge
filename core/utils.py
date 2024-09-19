@@ -499,6 +499,12 @@ def touch(path):
             os.utime(path)
 
 def rebuild_content_from_diff(content, start_pos, end_pos, change_text):
+    # TODO: ERROR:epc:IndexError('list index out of range'). When this error occurs,
+    # self.search_content_dict[buffer_name] (content) here is empty string ''
+    # `lsp-bridge` can't disable searchWords completely. And this solution works even with
+    # searchWords enabled. Not sure side-effect.
+    if content == '':
+        return ''
     start_line = start_pos['line']
     start_char = start_pos['character']
     end_line = end_pos['line']
