@@ -506,6 +506,7 @@ Possible choices are pyright_ruff, pyright-background-analysis_ruff, jedi_ruff, 
 
 (defcustom lsp-bridge-single-lang-server-mode-list
   '(
+    (org-mode .                                                "ltex-ls")
     ((c-mode c-ts-mode c++-mode c++-ts-mode objc-mode c-or-c++-ts-mode) .        lsp-bridge-c-lsp-server)
     ((cmake-mode cmake-ts-mode) .                                                "cmake-language-server")
     ((java-mode java-ts-mode) .                                                  "jdtls")
@@ -513,7 +514,7 @@ Possible choices are pyright_ruff, pyright-background-analysis_ruff, jedi_ruff, 
     ((python-mode python-ts-mode) .                                              lsp-bridge-python-lsp-server)
     ((ruby-mode ruby-ts-mode) .                                                  "solargraph")
     ((rust-mode rustic-mode rust-ts-mode) .                                      "rust-analyzer")
-	(move-mode .                                                                 "move-analyzer")
+    (move-mode .                                                                 "move-analyzer")
     ((elixir-mode elixir-ts-mode heex-ts-mode) .                                 lsp-bridge-elixir-lsp-server)
     ((go-mode go-ts-mode) .                                                      "gopls")
     (groovy-mode .                                                               "groovy-language-server")
@@ -905,7 +906,9 @@ So we build this macro to restore postion after code format."
         (and lsp-bridge-org-babel--info-cache
              (org-element-property :value lsp-bridge-org-babel--info-cache))
       (with-current-buffer buf
-        (buffer-substring-no-properties (point-min) (point-max))))))
+        (buffer-substring-no-properties (point-min) (point-max)))))
+  ;; TODO: Let it return nothing if not in src-block
+  "")
 
 (defun lsp-bridge--get-current-line-func ()
   (buffer-substring-no-properties (line-beginning-position) (line-end-position)))

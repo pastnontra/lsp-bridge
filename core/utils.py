@@ -437,6 +437,10 @@ def string_to_base64(text):
 
 def get_position(content, line, character):
     lines = content.split('\n')
+    print('DEBUG------------------------')
+    print(lines)
+    print(len(lines))
+    print('-----------------------------')
     position = sum(len(lines[i]) + 1 for i in range(line)) + character
     return position
 
@@ -470,6 +474,9 @@ def touch(path):
             os.utime(path)
 
 def rebuild_content_from_diff(content, start_pos, end_pos, change_text):
+    print("DEBUG----")
+    print(content)
+    print("----")
     start_line = start_pos['line']
     start_char = start_pos['character']
     end_line = end_pos['line']

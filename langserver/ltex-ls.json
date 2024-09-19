@@ -1,0 +1,17 @@
+{
+    "name": "ltex-ls",
+    "languageId": "org",
+    "command": [ "ltex-ls"],
+    "settings": {},
+    "capabilities": {
+        "publishDiagnostics": {
+            "relatedInformation": true,
+            "tagSupport": {
+                "valueSet": [
+                    1,
+                    2
+                ]
+            }
+        }
+    }
+}

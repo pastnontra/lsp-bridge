@@ -82,8 +82,8 @@ class FileAction:
         self.org_lang_servers = {}
         self.org_server_infos = {}
         if self.org_file:
-             self.org_lang_servers[self.single_server.server_name] = self.single_server
-             self.org_server_infos[self.single_server.server_name] = self.single_server_info
+            self.org_lang_servers[self.single_server.server_name] = self.single_server
+            self.org_server_infos[self.single_server.server_name] = self.single_server_info
 
         # Initialize handlers.
         self.handlers: Dict[str, Handler] = dict()
@@ -107,7 +107,7 @@ class FileAction:
              "lsp-bridge-diagnostic-fetch-idle",
              "acm-backend-lsp-candidate-max-length",
              "lsp-bridge-diagnostic-max-number"
-        ])
+         ])
         self.completion_block_kind_list = None
         self.insert_spaces = not self.insert_spaces
 
@@ -142,7 +142,8 @@ class FileAction:
         file_content = ''
         if self.org_file:
             file_content = get_buffer_content(self.filepath, os.path.basename(self.filepath))
-        else:
+            # TODO: if file content still empty, means current is not in src-block
+        if file_content == '':
             with open(self.filepath, encoding="utf-8", errors="ignore") as f:
                 file_content = f.read()
         return file_content
@@ -189,7 +190,7 @@ class FileAction:
             elif lsp_server.text_document_sync == 1:
                 if not buffer_content:
                     buffer_content = get_buffer_content(self.filepath, buffer_name)
-                lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
+                    lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
             else:
                 lsp_server.send_did_change_notification(self.filepath, self.version, start, end, range_length, change_text)
 
@@ -217,7 +218,7 @@ class FileAction:
         buffer_content = get_buffer_content(self.filepath, buffer_name)
         for lsp_server in self.get_lsp_servers():
             lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
-        self.version += 1
+            self.version += 1
 
     def try_completion(self, position, before_char, prefix, version=None):
         # If we call try_completion from Elisp side, Emacs don't know the version of FileAction.
@@ -361,6 +362,9 @@ class FileAction:
             self.code_action_counter = 0
 
             code_actions = self.get_code_actions()
+            print('DEBUG---------')
+            print(len(code_actions))
+            print('---------')
             if len(code_actions) > 0:
                 if self.code_action_has_valid_edits(code_actions):
                     eval_in_emacs("lsp-bridge-code-action--fix", code_actions, action_kind)

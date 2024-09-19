@@ -50,7 +50,8 @@
   (if (and lsp-bridge-org-babel--info-cache (lsp-bridge-org-babel-in-block-p (point)))
       lsp-bridge-org-babel--info-cache
     (setq-local lsp-bridge-org-babel--info-cache (org-element-context))
-    ;; TODO support latex block like `latex-environment' nad `latex-block'
+    ;; TODO support latex block like `latex-environment' and `latex-block'
+    ;; Pcase maybe suit for this
     (if (not (eq (org-element-type lsp-bridge-org-babel--info-cache) 'src-block))
         (setq-local lsp-bridge-org-babel--info-cache nil)
       (save-excursion
@@ -61,8 +62,12 @@
       ;; sync it in `lsp-bridge-monitor-before-change'
       (setq-local lsp-bridge-org-babel--update-file-before-change t)))
 
-  (and lsp-bridge-org-babel--info-cache
-       (lsp-bridge-org-babel-get-single-lang-server)))
+  ;; Use Org's LS if not in src-block
+  (if lsp-bridge-org-babel--info-cache
+      (lsp-bridge-org-babel-get-single-lang-server)
+    ;; FIXME: It should get result from `lsp-bridge-has-lsp-server-p'
+    ;; But current implementation is too tedious, maybe something recursive version is better.
+    "ltex-ls"))
 
 (defun lsp-bridge-org-babel-get-single-lang-server ()
   "Get single lang server for org block."

@@ -543,8 +543,9 @@ class LspBridge:
         if os.path.splitext(filepath)[-1] == '.org':
             single_lang_server = get_emacs_func_result("get-single-lang-server", project_path, filepath)
             lang_server_info = load_single_server_info(single_lang_server)
-            #TODO support diagnostic
-            lsp_server = self.create_lsp_server(filepath, project_path, lang_server_info, enable_diagnostics=False)
+            # TODO support diagnostic
+            # Modify it to True
+            lsp_server = self.create_lsp_server(filepath, project_path, lang_server_info, enable_diagnostics=True)
             create_file_action_with_single_server(filepath, lang_server_info, lsp_server)
         elif multi_lang_server:
             # Try to load multi language server when get-multi-lang-server return match one.
@@ -745,6 +746,7 @@ class LspBridge:
             if lsp_server_name not in action.org_lang_servers:
                 lang_server_info = load_single_server_info(current_lang_server)
                 server = self.create_lsp_server(filepath, action.single_server.project_path,
+                                                # Original False
                                                 lang_server_info, enable_diagnostics=False)
                 action.org_lang_servers[lsp_server_name] = server
                 action.org_server_infos[lsp_server_name] = lang_server_info
