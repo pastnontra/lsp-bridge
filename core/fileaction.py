@@ -142,7 +142,7 @@ class FileAction:
         file_content = ''
         if self.org_file:
             file_content = get_buffer_content(self.filepath, os.path.basename(self.filepath))
-            # TODO: if file content still empty, means current is not in src-block
+        # TODO: if file content still empty, means current is not in src-block
         if file_content == '':
             with open(self.filepath, encoding="utf-8", errors="ignore") as f:
                 file_content = f.read()
@@ -192,7 +192,7 @@ class FileAction:
             elif lsp_server.text_document_sync == 1:
                 if not buffer_content:
                     buffer_content = get_buffer_content(self.filepath, buffer_name)
-                    lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
+                lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
             else:
                 lsp_server.send_did_change_notification(self.filepath, self.version, start, end, range_length, change_text)
 
@@ -220,7 +220,7 @@ class FileAction:
         buffer_content = get_buffer_content(self.filepath, buffer_name)
         for lsp_server in self.get_lsp_servers():
             lsp_server.send_whole_change_notification(self.filepath, self.version, buffer_content)
-            self.version += 1
+        self.version += 1
 
     def try_completion(self, position, before_char, prefix, version=None):
         # If we call try_completion from Elisp side, Emacs don't know the version of FileAction.

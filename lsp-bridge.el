@@ -1120,7 +1120,10 @@ So we build this macro to restore postion after code format."
                  (buffer-file-name) method)
       (when (lsp-bridge-call-file-api-p)
         (if (and (boundp 'acm-backend-lsp-filepath)
-                 (file-exists-p acm-backend-lsp-filepath))
+                 ;; TODO With current setting when `acm-backend-lsp-filepath' is `nil'
+                 ;; Maybe change `acm-backend-lsp-filepath' to =(if name (file-truename name) "")=
+                 (when acm-backend-lsp-filepath
+                   (file-exists-p acm-backend-lsp-filepath)))
             (if lsp-bridge-buffer-file-deleted
                 ;; If buffer's file create again (such as switch branch back), we need save buffer first,
                 ;; send the LSP request after the file is changed next time.

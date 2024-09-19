@@ -864,7 +864,6 @@ class LspBridge:
             if lsp_server_name not in action.org_lang_servers:
                 lang_server_info = load_single_server_info(current_lang_server)
                 server = self.create_lsp_server(filepath, action.single_server.project_path,
-                                                # Original False
                                                 lang_server_info, enable_diagnostics=False)
                 action.org_lang_servers[lsp_server_name] = server
                 action.org_server_infos[lsp_server_name] = lang_server_info
