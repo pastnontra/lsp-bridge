@@ -364,9 +364,6 @@ class FileAction:
             self.code_action_counter = 0
 
             code_actions = self.get_code_actions()
-            print('DEBUG---------')
-            print(len(code_actions))
-            print('---------')
             if len(code_actions) > 0:
                 eval_in_emacs("lsp-bridge-code-action--fix", code_actions, action_kind)
             elif self.get_diagnostics_count() > 0:

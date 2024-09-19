@@ -80,7 +80,7 @@ class SearchFileWords:
             return
 
         if buffer_name in self.search_content_dict:
-            # FIXME: ERROR:epc:IndexError('list index out of range'). Wen this error occurs,
+            # FIXME: ERROR:epc:IndexError('list index out of range'). When this error occurs,
             # self.search_content_dict[buffer_name] is empty string ''
             content = rebuild_content_from_diff(self.search_content_dict[buffer_name], start_pos, end_pos, change_text)
         else:

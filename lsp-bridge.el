@@ -974,7 +974,7 @@ So we build this macro to restore postion after code format."
              (org-element-property :value lsp-bridge-org-babel--info-cache))
       (with-current-buffer buf
         (buffer-substring-no-properties (point-min) (point-max)))))
-  ;; TODO: Let it return nothing if not in src-block
+  ;; TODO: Return empty string if not in src-block. So LS won't receive "text": []
   "")
 
 (defun lsp-bridge--get-current-line-func ()
