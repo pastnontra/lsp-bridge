@@ -2,5 +2,9 @@
   "name": "ltex-ls",
   "languageId": "org",
   "command": [ "ltex-ls" ],
-  "settings": {}
+  "settings": {
+    "ltex": {
+      "disabledRules": { "en-US": ["MORFOLOGIK_RULE_EN_US"] }
+    }
+  }
 }
