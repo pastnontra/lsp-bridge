@@ -222,6 +222,7 @@ You can set this value with `(2 3 4) if you just need render error diagnostic."
                                       (setq diagnostic-index (1+ diagnostic-index))))
                                   (setq-local lsp-bridge-diagnostic-overlays (reverse lsp-bridge-diagnostic-overlays)))))
 
+;; TODO: Define again?
 (defvar lsp-bridge-diagnostic-frame nil)
 
 (defun lsp-bridge-diagnostic-insert-colored-string (color text)
@@ -286,10 +287,28 @@ You can set this value with `(2 3 4) if you just need render error diagnostic."
 
 (defun lsp-bridge-in-diagnostic-overlay-area-p (overlay)
   (and
-   lsp-bridge-diagnostic-frame
-   (not (frame-visible-p lsp-bridge-diagnostic-frame))
+   ;; FIXME: `lsp-bridge-diagnostic-frame' could be `nil'.
+   ;; If user calls `lsp-bridge-diagnostic-jump-next' at the last error, it won't show tooltip.
+   ;; E.g. a file only contains "Hello w*orldd", pointer is at `*'.
+   ;; This function is not work like the name suggests.
+   (if lsp-bridge-diagnostic-frame
+       (not (frame-visible-p lsp-bridge-diagnostic-frame))
+     t)
    (>= (point) (overlay-start overlay))
    (<= (point) (overlay-end overlay))))
+
+;; TODO: Maybe a more generic function. But currently I'm happy with it.
+(defun lsp-bridge-diagnostic-at-point ()
+  (interactive)
+  (if (zerop (length lsp-bridge-diagnostic-overlays))
+      (message "[LSP-Bridge] No diagnostics.")
+    (if-let ((diagnostic-overlay (cl-find-if
+                                  (lambda (overlay)
+                                    ;; Show diagnostic information around cursor if diagnostic frame is not visible.
+                                    (lsp-bridge-in-diagnostic-overlay-area-p overlay))
+                                  lsp-bridge-diagnostic-overlays)))
+        (lsp-bridge-diagnostic-show-tooltip diagnostic-overlay nil)
+      (message "[LSP-Bridge] No diagnostic at point."))))
 
 (defun lsp-bridge-diagnostic-jump-next ()
   (interactive)
@@ -298,7 +317,7 @@ You can set this value with `(2 3 4) if you just need render error diagnostic."
     (if-let ((diagnostic-overlay (cl-find-if
                                   (lambda (overlay)
                                     (or (< (point) (overlay-start overlay))
-                                        ;; Show diagnostic information around cursor if diagnostic frame is not visiable.
+                                        ;; Show diagnostic information around cursor if diagnostic frame is not visible.
                                         (lsp-bridge-in-diagnostic-overlay-area-p overlay)))
                                   lsp-bridge-diagnostic-overlays)))
         (lsp-bridge-diagnostic-show-tooltip diagnostic-overlay t)
@@ -311,7 +330,7 @@ You can set this value with `(2 3 4) if you just need render error diagnostic."
     (if-let ((diagnostic-overlay (cl-find-if
                                   (lambda (overlay)
                                     (or (> (point) (overlay-end overlay))
-                                        ;; Show diagnostic information around cursor if diagnostic frame is not visiable.
+                                        ;; Show diagnostic information around cursor if diagnostic frame is not visible.
                                         (lsp-bridge-in-diagnostic-overlay-area-p overlay)))
                                   (reverse lsp-bridge-diagnostic-overlays))))
         (lsp-bridge-diagnostic-show-tooltip diagnostic-overlay t)
